@@ -11,6 +11,8 @@ char charToSend() {
 	randNum = 26 * (rand() / (RAND_MAX + 1.0));
 	randNum += 97;
 	randChar = (char)randNum;
+
+	return 'a';
 }
 
 int locking() 
@@ -46,6 +48,7 @@ int locking()
 		return EXIT_FAILURE;
 	}
 	*/
+	return 0;
 }
 
 int main(int argc, const char* argv[]) {
