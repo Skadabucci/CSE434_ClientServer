@@ -11,8 +11,8 @@ char charToSend() {
 	randNum = 26 * (rand() / (RAND_MAX + 1.0));
 	randNum += 97;
 	randChar = (char)randNum;
-
-	return 'a';
+	
+	return randChar;
 }
 
 int locking() 
