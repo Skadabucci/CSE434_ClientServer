@@ -23,6 +23,8 @@ request* Request(char* client_ip, int inc, int client, int req, char c) {
 	newRequest->client = client;
 	newRequest->req = req;
 	newRequest->c = c;
+
+	return newRequest;
 }
 
 #endif
