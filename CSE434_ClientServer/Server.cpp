@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
+#include <cstring>
 #include <vector>
 #include <algorithm>
 #include <unistd.h>
+#include <arpa/inet.h>
 // This to be relplaced with sys/socket.h
 #include <sys/socket.h>
 //------------------------------------------
@@ -30,7 +31,7 @@ void DieWithError(const char *errorMessage) /* External error handling function 
 string ModifyString(string savedString, char toAppend)
 {
 	savedString = toAppend + savedString;
-	if (savedString.length > 5)
+	if (savedString.length() > 5)
 		savedString  = savedString.substr(0, 4);
 	return savedString;
 }
@@ -46,7 +47,7 @@ int main(int argc, char* argv[])
     struct sockaddr_in serverAddr;	/* Local address */
     struct sockaddr_in clientAddr;	/* Client address */
     unsigned int clientAddrLength;  /* Length of incoming message */
-	request *newRequest;				/* Request received from client */
+	request *newRequest;			/* Request received from client */
 	vector<clientEntry> clientTable;/* The client table of all the clients */
 	clientEntry newClientEntry;		/* Client for client table lookup */
     unsigned short serverPort;		/* Server port */
@@ -77,7 +78,7 @@ int main(int argc, char* argv[])
 
         /* Block until receive message from a client */
         if ((recvMsgSize = recvfrom(sock, (void*)newRequest, sizeof(newRequest), 0,
-			(struct sockaddr *) &clientAddr, (int*) &clientAddrLength)) < 0)
+			(struct sockaddr *) &clientAddr, &clientAddrLength)) < 0)
             DieWithError("recvfrom() failed");
 
         printf("Handling client %s\n", inet_ntoa(clientAddr.sin_addr));
@@ -87,11 +88,11 @@ int main(int argc, char* argv[])
 
 		/* If the client is not found, add it */
 		if (it == clientTable.end()) {
-			clientTable.push_back(Client(getpid(), newRequest->inc, newRequest->client, 0));
+			clientTable.push_back(*Client((int)getpid(), newRequest->inc, newRequest->client, 0));
 		}
 		/* Else update the existing entry */
 		else {
-			it->process_id = getpid();
+			it->process_id = (int)getpid();
 			it->inc = newRequest->inc;
 			it->client = newRequest->client;
 		}
