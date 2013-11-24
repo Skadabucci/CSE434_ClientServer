@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 
 typedef struct requestf {
 	char client_ip[16];		/* To hold client IP address in dotted decimal */
@@ -25,6 +26,25 @@ request* Request(char* client_ip, int inc, int client, int req, char c) {
 	newRequest->c = c;
 
 	return newRequest;
+}
+
+typedef struct clientf {
+	int process_id;			/* Process ID for client table */
+	int inc;				/* Incarnation number of client */
+	int client;				/* Client number */
+	int requestNum;			/* Request number 'r' */
+	std::string sendMsg;	/* The string saved for the client */
+}clientEntry;
+
+clientEntry* Client(int process_id, int inc, int client, int requestNum) {
+	clientEntry* newClientEntry = (clientEntry*)malloc(sizeof(client));
+	
+	newClientEntry->process_id = process_id;
+	newClientEntry->inc = inc;
+	newClientEntry->client = client;
+	newClientEntry->requestNum = requestNum;
+
+	return newClientEntry;
 }
 
 #endif
