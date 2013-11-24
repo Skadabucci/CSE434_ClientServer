@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <unistd.h>
 // This to be relplaced with sys/socket.h
-#include <WinSock2.h>
+#include <sys/socket.h>
 //------------------------------------------
 #include "Request.h"
 
