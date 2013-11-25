@@ -52,12 +52,12 @@ int main(int argc, const char* argv[]) {
     memset(&echoServAddr, 0, sizeof(echoServAddr));    /* Zero out structure */
     echoServAddr.sin_family = AF_INET;                 /* Internet addr family */
     echoServAddr.sin_addr.s_addr = inet_addr(serverIp);  /* Server IP address */
-    echoServAddr.sin_port   = htons(echoServerPort);     /* Server port */
+    echoServAddr.sin_port = htons(echoServerPort);     /* Server port */
 	while (successfulRequests < 20) 
 	{
 
 		struct requestf r;
-		r.inc = 10;
+		r.inc = GetIncarnationNumber();
 		r.client = atoi(argv[2]);
 		r.req = successfulRequests;
 		string s = GetAddresses(AF_INET);
