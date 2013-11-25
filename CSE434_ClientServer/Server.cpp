@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     unsigned int clientAddrLength;  /* Length of incoming message */
 	request *newRequest;			/* Request received from client */
 	vector<clientEntry> clientTable;/* The client table of all the clients */
-	clientEntry newClientEntry;		/* Client for client table lookup */
+	clientEntry *newClientEntry;		/* Client for client table lookup */
     unsigned short serverPort;		/* Server port */
     int recvMsgSize;                /* Size of received message */
 	
@@ -84,41 +84,46 @@ int main(int argc, char* argv[])
         printf("Handling client %s\n", inet_ntoa(clientAddr.sin_addr));
 
 		/* Lookup the client in the client talbe */
-		auto it = find_if(clientTable.begin(), clientTable.end(), find_id(newRequest->client));
+		auto iter = find_if(clientTable.begin(), clientTable.end(), find_id(newRequest->client));
 
 		/* If the client is not found, add it */
-		if (it == clientTable.end()) {
-			clientTable.push_back(*Client((int)getpid(), newRequest->inc, newRequest->client, 0));
+		if (iter == clientTable.end()) {
+			newClientEntry->process_id = getpid();
+			newClientEntry->inc = newRequest->inc;
+			newClientEntry->client = newRequest->client;
+			newClientEntry->requestNum = newRequest->req;
+			newClientEntry->sendMsg = "";
+			clientTable.push_back(*newClientEntry);
+			iter = clientTable.end()-1;
 		}
-		/* Else update the existing entry */
-		else {
-			it->process_id = (int)getpid();
-			it->inc = newRequest->inc;
-			it->client = newRequest->client;
-		}
+		/* Else the iterator is pointing to the discovered client */
 
 		/* These cases compare 'R' (client request number) to 'r' (server request number) */
-		if (newRequest->req < it->requestNum) {
+		if (newRequest->req < iter->requestNum) {
 			printf("The request from %d was ignored.\n", clientAddr.sin_addr);
-			printf("The client's request number (%d) was less than the server's request number (%d)\n\n", newRequest->req, it->requestNum);
+			printf("The client's request number (%d) was less than the server's request number (%d)\n\n", newRequest->req, iter->requestNum);
+			++iter->requestNum;
 		}
-		else if (newRequest->req == it->requestNum) {
+		else if (newRequest->req == iter->requestNum) {
 			/* Send received datagram back to the client */
-			if (sendto(sock, (void*)&it->sendMsg, recvMsgSize, 0, 
+			if (sendto(sock, (void*)&iter->sendMsg, recvMsgSize, 0, 
 				 (struct sockaddr *) &clientAddr, sizeof(clientAddr)) != recvMsgSize)
 				DieWithError("sendto() sent a different number of bytes than expected");
-			printf("The client's request number (%d) was equal to the server's request number (%d)\n\n", newRequest->req, it->requestNum);
+			printf("The client's request number (%d) was equal to the server's request number (%d)\n\n", newRequest->req, iter->requestNum);
+			++iter->requestNum;
 		}
-		else if (newRequest->req > it->requestNum) {
+		else if (newRequest->req > iter->requestNum) {
 			/* Modify the message to send back */
-			it->sendMsg = ModifyString(it->sendMsg, newRequest->c);
+			iter->sendMsg = ModifyString(iter->sendMsg, newRequest->c);
 			/* Send received datagram back to the client */
-			if (sendto(sock, (void*)&it->sendMsg, recvMsgSize, 0, 
+			if (sendto(sock, (void*)&iter->sendMsg, recvMsgSize, 0, 
 				 (struct sockaddr *) &clientAddr, sizeof(clientAddr)) != recvMsgSize)
 				DieWithError("sendto() sent a different number of bytes than expected");
-			printf("The client's request number (%d) was greater than the server's request number (%d)\n\n", newRequest->req, it->requestNum);
+			printf("The client's request number (%d) was greater than the server's request number (%d)\n\n", newRequest->req, iter->requestNum);
+			++iter->requestNum;
 		}
 
+		/* Sort the client table in the interest of lookup times */
 		sort(clientTable.begin(), clientTable.end(), compareByClient);
     }
     /* NOT REACHED */
